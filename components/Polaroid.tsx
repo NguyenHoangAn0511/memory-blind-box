@@ -29,10 +29,14 @@ const HOLO_GRADIENTS: Record<string, string> = {
 export default function Polaroid({
   card,
   isNew = false,
+  onReOpen,
+  onFlip,
   overrides
 }: {
   card: CardData;
   isNew?: boolean;
+  onReOpen?: () => void;
+  onFlip?: (isFront: boolean) => void;
   overrides?: {
     colorGradient?: string;
     holoGradient?: string;
@@ -44,6 +48,7 @@ export default function Polaroid({
   };
 }) {
   const [isFlipped, setIsFlipped] = useState(isNew);
+  const [hasRevealed, setHasRevealed] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -62,8 +67,8 @@ export default function Polaroid({
   const glareBg = useMotionTemplate`radial-gradient(circle at ${bgX} ${bgY}, rgba(255,255,255,1.0) 5%, transparent 65%)`;
 
   useEffect(() => {
-    const controlsX = animate(x, [x.get(), 0.4, -0.2, 0.5, -0.3, 0], { repeat: Infinity, repeatType: "mirror", duration: 7, ease: "easeInOut" });
-    const controlsY = animate(y, [y.get(), -0.4, 0.5, -0.2, 0.4, 0], { repeat: Infinity, repeatType: "mirror", duration: 9, ease: "easeInOut" });
+    const controlsX = animate(x, [x.get(), 0.2, -0.1, 0.1, -0.1, 0], { repeat: Infinity, repeatType: "mirror", duration: 7, ease: "easeInOut" });
+    const controlsY = animate(y, [y.get(), -0.2, 0.1, -0.1, 0.1, 0], { repeat: Infinity, repeatType: "mirror", duration: 9, ease: "easeInOut" });
     return () => { controlsX.stop(); controlsY.stop(); };
   }, [x, y]);
 
@@ -133,8 +138,16 @@ export default function Polaroid({
   };
 
   const handleFlip = () => {
+    const newFlipped = !isFlipped;
     playSfx('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', 0.8);
-    setIsFlipped(!isFlipped);
+    
+    // If we are flipping from back to front for the first time
+    if (newFlipped === false && !hasRevealed) {
+      setHasRevealed(true);
+      if (onFlip) onFlip(true);
+    }
+    
+    setIsFlipped(newFlipped);
   };
 
   return (
@@ -151,7 +164,9 @@ export default function Polaroid({
             transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d",
             boxShadow: card.type === 'Birthday' ? "0 0 50px rgba(255, 105, 180, 0.4)" : card.type === 'Anniversary' ? "0 0 40px rgba(220, 38, 38, 0.4)" : card.type === 'Core Memory' ? "0 0 40px rgba(245, 158, 11, 0.4)" : card.type === 'Secret' ? "0 0 40px rgba(124, 58, 237, 0.4)" : "0 25px 50px -12px rgba(0,0,0,0.5)"
           }}
-          animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+          initial={{ rotateY: isFlipped ? 180 : 0 }}
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          transition={{ duration: 1, type: "spring", bounce: 0.15 }}
           className="w-full h-full relative rounded-xl"
         >
           {/* Front Face */}
@@ -172,7 +187,7 @@ export default function Polaroid({
             <div className="absolute inset-x-0 top-0 h-[100%] z-15 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
             <motion.div className="absolute inset-0 z-10" style={{ backgroundImage: glareBg, mixBlendMode: "color-dodge", opacity: currentGlareOpacity * 1.5 }} />
 
-            <div className="absolute top-2 right-2 z-[60] flex flex-col items-center">
+            <div className="absolute top-2 right-2 z-[60] flex flex-col items-center gap-2">
               <motion.div animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity }} className={`bg-white/90 p-1.5 rounded-full shadow-lg border border-white/20`}>
                 {card.type === 'Birthday' ? <Cake className="w-4 h-4 text-pink-500" /> : card.type === 'Secret' ? <Ghost className="w-4 h-4 text-purple-600" /> : card.type === 'Core Memory' ? <Film className="w-4 h-4 text-amber-500" /> : card.type === 'Dinner' ? <Utensils className="w-4 h-4 text-red-900" /> : card.type === 'Anniversary' ? <Heart className="w-4 h-4 text-red-600" /> : card.type === 'Holiday' ? <Zap className="w-4 h-4 text-blue-600" /> : <Sparkles className="w-4 h-4 text-slate-400" />}
               </motion.div>

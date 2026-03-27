@@ -80,9 +80,11 @@ export default function LoginGuard({ children }: { children: React.ReactNode }) 
           .from('profiles')
           .select('*')
           .eq('access_code', code.toUpperCase())
-          .single();
+          .maybeSingle();
 
-        if (dbError || !data) {
+        if (dbError) {
+          setError(`Database error: ${dbError.message} (Is RLS enabled?)`);
+        } else if (!data) {
           setError('Invalid access code.');
         } else {
           // Sync with the global store - this triggers the useEffect above
