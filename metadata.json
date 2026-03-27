@@ -1,0 +1,5 @@
+{
+  "name": "Memory Blind Box",
+  "description": "A blind box open web app with a 3D model, revealing polaroid images of different rarities.",
+  "requestFramePermissions": []
+}
