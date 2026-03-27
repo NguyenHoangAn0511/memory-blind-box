@@ -312,7 +312,7 @@ export default function BoosterPackOpening({
             transition={{ type: 'spring', stiffness: 280, damping: 22 }}
             onClick={handleTap}
             className="relative cursor-pointer select-none z-50"
-            style={{ width: 380, height: 580, perspective: 1200 }}
+            style={{ width: 280, height: 440, perspective: 1000 }}
           >
             {/* Inner wrapper: handles shake via MotionValues (x/y offset only) */}
             <motion.div
@@ -502,7 +502,7 @@ function CardReveal({ card, cfg, flipped }: { card: CardData; cfg: typeof RARITY
         animate={{ rotateY: flipped ? 0 : 180 }}
         transition={{ duration: cfg.flipDuration, type: 'spring', stiffness: 200, damping: 20 }}
         className="relative"
-        style={{ width: 320, height: 448, transformStyle: 'preserve-3d' }}
+        style={{ width: 240, height: 336, transformStyle: 'preserve-3d' }}
       >
         {/* FRONT (card face - identical styling to Polaroid inner content) */}
         <div
