@@ -211,7 +211,12 @@ export default function Home() {
 
       <footer className="w-full max-w-5xl mt-20 md:mt-32 pt-12 border-t border-stone-200 flex flex-col md:flex-row gap-12 text-center md:text-left">
           <div className="flex-1"><h3 className="font-serif text-2xl font-bold mb-4 text-stone-900">The Blind Box Mystery</h3><p className="text-stone-500 leading-relaxed text-sm md:text-base">A year of digital collectibles, each uniquely crafted around our shared memories. Unbox one memory every day as we count down to our biggest moments.</p></div>
-          <div className="flex-1"><h3 className="font-serif text-2xl font-bold mb-4 text-stone-900">TCG Mechanics</h3><p className="text-stone-500 leading-relaxed text-sm md:text-base">Cards feature multiple rarities: <span className="text-stone-900 font-medium">Casual</span>, <span className="text-rose-600 font-medium">Dinner</span>, <span className="text-sky-600 font-medium font-bold">Holiday</span>, and the ultra-rare <span className="text-pink-600 font-bold">Birthday holographic</span>.</p></div>
+          <div className="flex-1">
+            <h3 className="font-serif text-2xl font-bold mb-4 text-stone-900">TCG Mechanics</h3>
+            <p className="text-stone-500 leading-relaxed text-sm md:text-base">
+              Cards feature multiple rarities: <span className="text-stone-900 font-medium">Casual</span>, <span className="text-rose-600 font-medium">Dinner</span>, <span className="text-sky-600 font-medium font-bold">Holiday</span>, <span className="text-red-600 font-medium">Anniversary</span>, <span className="text-amber-500 font-medium">Core Memory</span>, <span className="text-purple-600 font-medium">Secret</span>, and the ultra-rare <span className="text-pink-600 font-bold">Birthday holographic</span>.
+            </p>
+          </div>
       </footer>
 
       {/* Booster Pack Opening Animation */}

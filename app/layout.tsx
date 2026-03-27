@@ -3,8 +3,11 @@ import "./globals.css";
 import LoginGuard from '@/components/LoginGuard'; // Global styles
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'My Google AI Studio App',
+  title: 'Memory Blind Box',
+  description: 'A digital TCG of precious memories.',
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦄</text></svg>",
+  },
   formatDetection: {
     telephone: false,
     date: false,
