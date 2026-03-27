@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/lib/store';
 
 // Set this to TRUE to enforce the strict "Wait until April 2026" rule during development
-export const ENFORCE_DATE_LOCK = true;
+export const ENFORCE_DATE_LOCK = false;
 
 // If Supabase is disconnected, we use a fallback local passcode
 const FALLBACK_PASSCODE = 'HAPPYBIRTHDAY';

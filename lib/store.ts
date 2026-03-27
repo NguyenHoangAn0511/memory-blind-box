@@ -14,7 +14,10 @@ interface AppState {
   setMonth: (month: number) => void;
   setYear: (year: number) => void;
   resetCalendar: () => void;
+  unlockedLetters: string[];
+  unlockLetter: (letterId: string) => void;
 }
+
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -25,6 +28,10 @@ export const useAppStore = create<AppState>()(
       setOpenedDays: (days) => set({ openedDays: days }),
       cards: [],
       setCards: (cards) => set({ cards }),
+      unlockedLetters: [],
+      unlockLetter: (letterId) => set((state) => ({
+        unlockedLetters: state.unlockedLetters.includes(letterId) ? state.unlockedLetters : [...state.unlockedLetters, letterId]
+      })),
       currentMonth: new Date().getMonth(),
       currentYear: new Date().getFullYear(),
       setMonth: (month) => set({ currentMonth: month }),
@@ -36,9 +43,11 @@ export const useAppStore = create<AppState>()(
         openedDays: [], 
         accessCode: '', 
         cards: [], 
+        unlockedLetters: [],
         currentMonth: new Date().getMonth(), 
         currentYear: new Date().getFullYear() 
       }),
+
     }),
     {
       name: 'calendar-storage',

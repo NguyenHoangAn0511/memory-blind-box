@@ -125,13 +125,14 @@ export default function CollectionPage() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ layout: { type: 'spring', bounce: 0.2, duration: 0.6 } }}
-      layoutId={`collection-card-${card.day}`}
-      key={card.day}
+      layoutId={`collection-card-${card.id}`}
+      key={card.id}
       whileHover={{ scale: 1.05, y: -5 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => setSelectedCard(card)}
       className={`relative aspect-[3/4] rounded-xl flex flex-col items-center justify-center overflow-hidden transition-shadow duration-300 shadow-sm hover:shadow-xl cursor-pointer ${getBorderClass(card.type)}`}
     >
+
       <div className="absolute inset-0 opacity-80">
         <Image src={card.imageUrl} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
       </div>
@@ -269,7 +270,8 @@ export default function CollectionPage() {
               className={`flex-1 flex flex-col items-center justify-center p-4 transition-all duration-500`}
             >
               <div className="relative w-full h-full flex flex-col items-center justify-center">
-                <motion.div layoutId={`collection-card-${selectedCard.day}`} className="my-auto">
+                <motion.div layoutId={`collection-card-${selectedCard.id}`} className="my-auto">
+
                   <Polaroid card={selectedCard} isNew={false} />
                 </motion.div>
                 

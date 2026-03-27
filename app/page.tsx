@@ -7,9 +7,11 @@ import { X, Cake, Library, Info, RefreshCw, Download, Mail, ArrowLeft, LogOut, C
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
-import { getCardByDay, CardData } from '@/lib/data';
+import { getCardByDay, CardData, LETTERS, Letter } from '@/lib/data';
 import LetterEnvelope from '@/components/LetterEnvelope';
+import LetterBox from '@/components/LetterBox';
 import { supabase } from '@/lib/supabase';
+
 import Polaroid from '@/components/Polaroid';
 import BoosterPackOpening from '@/components/BoosterPackOpening';
 import { ENFORCE_DATE_LOCK } from '@/components/LoginGuard';
@@ -64,9 +66,9 @@ const DeckCard = memo(({ card, onClick, currentMonth }: {
     const duration = 2.5;
     return {
       y: [0, -(5 + Math.random() * 5), 0],
-      rotate: [-(0.7 + Math.random() * Math.random()), (0.7 + Math.random() * Math.random()), -(0.7 + Math.random() * Math.random())],
-      rotateX: [-(15 + Math.random() * 10), (15 + Math.random() * 10), -(15 + Math.random() * 10)],
-      rotateY: [-(5 + Math.random() * 10), (5 + Math.random() * 10), -(5 + Math.random() * 10)],
+      rotate: [-(0.7 + 12), (0.7 + 12), -(0.7 + 12)],
+      rotateX: [-(15 + 20), (15 + 20), -(15 + 20)],
+      rotateY: [-(5 + 10), (5 + 10), -(5 + 10)],
       duration,
       delay: -(Math.random() * duration)
     };
@@ -123,8 +125,11 @@ export default function Home() {
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
   const [isNewCard, setIsNewCard] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
+  const [showLetterBox, setShowLetterBox] = useState(false);
+  const [activeLetter, setActiveLetter] = useState<Letter | null>(null);
   const [dialog, setDialog] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
   const [boosterCard, setBoosterCard] = useState<CardData | null>(null);
+
 
   const cards = useAppStore((state) => state.cards);
   const setCards = useAppStore((state) => state.setCards);
@@ -136,8 +141,11 @@ export default function Home() {
   const setMonth = useAppStore((state) => state.setMonth);
   const setYear = useAppStore((state) => state.setYear);
   const resetCalendar = useAppStore((state) => state.resetCalendar);
+  const unlockedLetters = useAppStore((state) => state.unlockedLetters);
+  const unlockLetter = useAppStore((state) => state.unlockLetter);
 
   const [isClient, setIsClient] = useState(false);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -271,6 +279,14 @@ export default function Home() {
           <p className="text-stone-400 font-mono text-xs uppercase tracking-[0.3em] font-medium ml-1">Blind Box Experience</p>
         </div>
         <div className="flex gap-4">
+          <button
+            onClick={() => { playClick(); setShowLetterBox(true); }}
+            className={`relative flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase tracking-widest border border-stone-300 rounded-full transition-all hover:bg-stone-200 ${unlockedLetters.length > 0 ? 'bg-pink-50 border-pink-100 text-pink-500' : 'text-stone-500'}`}
+          >
+            <Mail className="w-4 h-4" />
+            <span className="hidden sm:inline">Letter Box</span>
+            {unlockedLetters.length > 0 && <span className="flex h-1.5 w-1.5 rounded-full bg-pink-400 absolute md:relative top-1 right-1 md:top-0 md:right-0 animate-pulse" />}
+          </button>
           <Link href="/collection" onClick={playClick} className="flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase tracking-widest border border-stone-300 rounded-full hover:bg-stone-200 transition-colors"><Library className="w-4 h-4" /> <span className="hidden sm:inline">Collection</span></Link>
           <button onClick={() => { playClick(); resetCalendar(); }} className="flex items-center gap-2 px-4 py-2 text-sm font-mono uppercase tracking-widest border border-stone-300 rounded-full hover:bg-stone-200 transition-colors text-stone-500 hover:text-rose-500"><LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Logout</span></button>
         </div>
@@ -338,12 +354,19 @@ export default function Home() {
             key={boosterCard.id}
             card={boosterCard}
             onComplete={() => {
+              const birthdayLetter = LETTERS.find(l => l.unlockCondition.month === currentMonth && l.unlockCondition.day === boosterCard.day);
               triggerConfetti(boosterCard);
               setBoosterCard(null);
+              if (birthdayLetter) {
+                unlockLetter(birthdayLetter.id);
+                setActiveLetter(birthdayLetter);
+                setShowLetter(true);
+              }
             }}
           />
         )}
       </AnimatePresence>
+
 
       <AnimatePresence>
         {dialog.open && (
@@ -388,7 +411,13 @@ export default function Home() {
                 <button
                   onClick={() => {
                     playClick();
+                    const birthdayLetter = LETTERS.find(l => l.unlockCondition.month === currentMonth && l.unlockCondition.day === selectedCard?.day);
                     setSelectedCard(null);
+                    if (birthdayLetter) {
+                      unlockLetter(birthdayLetter.id);
+                      setActiveLetter(birthdayLetter);
+                      setShowLetter(true);
+                    }
                   }}
                   className="px-8 py-3 bg-white text-black rounded-full font-mono text-[10px] md:text-xs uppercase tracking-widest hover:bg-pink-400 hover:text-white transition-all shadow-2xl"
                 >
@@ -399,10 +428,38 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-      {showLetter && <LetterEnvelope onClose={() => setShowLetter(false)} />}
+      <AnimatePresence>
+        {showLetterBox && (
+          <LetterBox
+            unlockedLetters={unlockedLetters}
+            allLetters={LETTERS}
+            onOpenLetter={(letter) => {
+              playClick();
+              setActiveLetter(letter);
+              setShowLetter(true);
+              setShowLetterBox(false);
+            }}
+            onClose={() => {
+              playClick();
+              setShowLetterBox(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      {showLetter && activeLetter && (
+
+        <LetterEnvelope
+          letter={activeLetter}
+          onClose={() => {
+            setShowLetter(false);
+            setActiveLetter(null);
+          }}
+        />
+      )}
     </main>
   );
 }
+
 
 // ─── Memoized Calendar Components ───────────────────────────────────────────
 

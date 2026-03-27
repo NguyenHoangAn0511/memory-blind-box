@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, MailOpen } from 'lucide-react';
+import { Letter } from '@/lib/data';
 
-export default function LetterEnvelope({ onClose }: { onClose: () => void }) {
+
+export default function LetterEnvelope({ letter, onClose }: { letter: Letter; onClose: () => void }) {
   const [step, setStep] = useState<'closed' | 'opening' | 'reading'>('closed');
 
   const handleOpen = () => {
@@ -67,7 +69,7 @@ export default function LetterEnvelope({ onClose }: { onClose: () => void }) {
                 className="absolute inset-0 bg-rose-50 z-30 flex flex-col justify-end items-center pb-4"
                 style={{ clipPath: 'polygon(0 100%, 50% 40%, 100% 100%, 100% 100%, 0 100%)' }}
               >
-                <span className="text-pink-400 font-serif italic text-lg drop-shadow-sm">From: An</span>
+                <span className="text-pink-400 font-serif italic text-lg drop-shadow-sm">From: {letter.sender}</span>
               </div>
               {/* Left fold */}
               <div
@@ -103,7 +105,7 @@ export default function LetterEnvelope({ onClose }: { onClose: () => void }) {
                   animate={step === 'opening' ? { opacity: 0 } : { opacity: 1 }}
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1 w-12 h-12 bg-rose-400 rounded-full shadow-md flex items-center justify-center border-2 border-rose-500"
                 >
-                  <span className="text-rose-100 font-serif font-bold text-xl">M</span>
+                  <span className="text-rose-100 font-serif font-bold text-xl">{letter.sender[0]}</span>
                 </motion.div>
               </motion.div>
 
@@ -132,25 +134,16 @@ export default function LetterEnvelope({ onClose }: { onClose: () => void }) {
           >
             {/* Stamp/Deco */}
             <div className="absolute top-8 right-8 w-16 h-16 border-2 border-pink-300 border-dashed rounded-full flex flex-col items-center justify-center opacity-60 transform rotate-12 bg-pink-100/50 shadow-sm">
-              <span className="text-pink-500 font-serif uppercase text-[9px] text-center font-bold">Birthday</span>
+              <span className="text-pink-500 font-serif uppercase text-[9px] text-center font-bold">{letter.title}</span>
               <span className="text-pink-400 font-serif uppercase text-[8px] text-center w-10">Edition</span>
             </div>
 
             <h2 className="text-3xl md:text-5xl font-serif text-pink-600 mb-8 mt-4">My Dearest,</h2>
 
             <div className="space-y-6 text-stone-700 font-serif leading-relaxed text-lg md:text-xl">
-              <p>
-                If you are reading this, it means you have uncovered every single memory we've hidden away for this month.
-              </p>
-              <p>
-                Seeing all these moments together—the quiet dinners, the grand holidays, the silly casual days—reminds me of how incredibly lucky I am to share this journey with you. Each card isn't just a photograph; it's a testament to the beautiful life we are building together.
-              </p>
-              <p>
-                Thank you for every smile, every adventure, and every quiet moment we've shared. I cherish these memories more than words can say, and I cannot wait to create a thousand more with you.
-              </p>
-              <p>
-                Here is to our past, our present, and our beautiful future.
-              </p>
+              {letter.content.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
             </div>
 
             <div className="mt-12 text-right">
@@ -172,3 +165,4 @@ export default function LetterEnvelope({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
