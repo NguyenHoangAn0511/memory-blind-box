@@ -63,12 +63,8 @@ const DeckCard = memo(({ card, onClick, currentMonth }: {
   currentMonth: number
 }) => {
   const randomAnim = useMemo(() => {
-    const duration = 2.5;
+    const duration = 2.5 + Math.random() * 0.5;
     return {
-      y: [0, 0, 0],
-      rotate: [-(0.7 + 12), (0.7 + 12), -(0.7 + 12)],
-      rotateX: [-(15 + 20), (15 + 20), -(15 + 20)],
-      rotateY: [-(5 + 10), (5 + 10), -(5 + 10)],
       duration,
       delay: -(Math.random() * duration)
     };
@@ -76,46 +72,43 @@ const DeckCard = memo(({ card, onClick, currentMonth }: {
 
   return (
     <motion.div
-      animate={{
-        y: randomAnim.y,
-        rotate: randomAnim.rotate,
-        rotateX: randomAnim.rotateX,
-        rotateY: randomAnim.rotateY
-      }}
-      transition={{
-        duration: randomAnim.duration,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: randomAnim.delay
-      }}
-      whileHover={{ scale: 1.05, y: -20, rotate: -3, zIndex: 50 }}
+      whileHover={{ scale: 1.02, y: -5, rotate: -1, zIndex: 50 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      style={{ willChange: 'transform, opacity', perspective: 1000, transformStyle: 'preserve-3d' }}
-      className={`relative flex-shrink-0 w-32 md:w-36 aspect-[63/88] bg-white rounded-lg shadow-md cursor-pointer snap-center overflow-hidden border-2 group transition-all duration-300 ${card.type === 'Birthday' ? 'border-pink-200 shadow-pink-500' :
-        card.type === 'Secret' ? 'border-purple-200 shadow-purple-500' :
-          card.type === 'Core Memory' ? 'border-amber-200 shadow-amber-500' :
-            card.type === 'Anniversary' ? 'border-red-200 shadow-red-500' :
-              card.type === 'Holiday' ? 'border-blue-200 shadow-blue-500' :
-                card.type === 'Dinner' ? 'border-stone-800 shadow-stone-800' : 'border-white shadow-stone-800'
-
-        }`}
+      style={{ perspective: 1000 }}
+      className="relative flex-shrink-0 w-32 md:w-36 aspect-[63/88] cursor-pointer snap-center z-10"
     >
-      <FoilOverlay type={card.type} />
-      <Image src={card.imageUrl} alt="" fill className="object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent z-20" />
-      <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5 z-30">
-        <div className="flex items-center gap-1.5">
-          <div className={`w-1.5 h-1.5 rounded-full ${card.type === 'Birthday' ? 'bg-pink-400 shadow-[0_0_8px_rgba(244,114,182,0.8)]' :
-            card.type === 'Secret' ? 'bg-purple-400' :
-              card.type === 'Core Memory' ? 'bg-amber-400' :
-                card.type === 'Anniversary' ? 'bg-red-500' :
-                  card.type === 'Holiday' ? 'bg-blue-400' :
-                    card.type === 'Dinner' ? 'bg-rose-400' : 'bg-stone-400'
-            }`} />
-          <p className="text-[7px] font-mono text-white/90 uppercase tracking-[0.25em] leading-none mb-0.5">{card.type}</p>
+      <div
+        className={`w-full h-full bg-white rounded-lg shadow-md overflow-hidden border-2 group transition-all duration-300 animate-float-card ${card.type === 'Birthday' ? 'border-pink-200 shadow-pink-500' :
+          card.type === 'Secret' ? 'border-purple-200 shadow-purple-500' :
+            card.type === 'Core Memory' ? 'border-amber-200 shadow-amber-500' :
+              card.type === 'Anniversary' ? 'border-red-200 shadow-red-500' :
+                card.type === 'Holiday' ? 'border-blue-200 shadow-blue-500' :
+                  card.type === 'Dinner' ? 'border-stone-800 shadow-stone-800' : 'border-white shadow-stone-800'
+          }`}
+        style={{
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+          animationDuration: `${randomAnim.duration}s`,
+          animationDelay: `${randomAnim.delay}s`
+        }}
+      >
+        <FoilOverlay type={card.type} />
+        <Image src={card.imageUrl} alt="" fill className="object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent z-20" />
+        <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5 z-30">
+          <div className="flex items-center gap-1.5">
+            <div className={`w-1.5 h-1.5 rounded-full ${card.type === 'Birthday' ? 'bg-pink-400 shadow-[0_0_8px_rgba(244,114,182,0.8)]' :
+              card.type === 'Secret' ? 'bg-purple-400' :
+                card.type === 'Core Memory' ? 'bg-amber-400' :
+                  card.type === 'Anniversary' ? 'bg-red-500' :
+                    card.type === 'Holiday' ? 'bg-blue-400' :
+                      card.type === 'Dinner' ? 'bg-rose-400' : 'bg-stone-400'
+              }`} />
+            <p className="text-[7px] font-mono text-white/90 uppercase tracking-[0.25em] leading-none mb-0.5">{card.type}</p>
+          </div>
+          <p className="text-[11px] font-serif font-black text-white ml-2.5">{MONTH_NAMES[currentMonth]} {card.day}</p>
         </div>
-        <p className="text-[11px] font-serif font-black text-white ml-2.5">{MONTH_NAMES[currentMonth]} {card.day}</p>
       </div>
     </motion.div>
   );
