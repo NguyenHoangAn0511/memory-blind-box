@@ -139,7 +139,7 @@ export default function BoosterPackOpening({
     // Final violent screen impact shake
     animate(screenX, [0, -25, 20, -15, 10, -5, 2, 0], { duration: 0.5, ease: "easeOut" });
     animate(screenY, [0, 15, -20, 12, -8, 4, -1, 0], { duration: 0.5, ease: "easeOut" });
-    animate(packX, 0); 
+    animate(packX, 0);
     animate(packY, 0);
 
     // Flash
@@ -149,7 +149,7 @@ export default function BoosterPackOpening({
 
     // Rays
     setShowRays(true);
-    
+
     // Apply screen tint effects
     if (cfg.screenEffect === 'cold') setScreenTint('hue-rotate(10deg) saturate(1.4)');
     if (cfg.screenEffect === 'warm') setScreenTint('sepia(0.2) saturate(1.2)');
@@ -158,7 +158,7 @@ export default function BoosterPackOpening({
       setChromatic(true);
       setTimeout(() => setChromatic(false), 300);
     }
-    
+
     if (cfg.screenEffect === 'blast') {
       setShowFlash(true);
     }
@@ -174,7 +174,7 @@ export default function BoosterPackOpening({
 
     // Wait for the impact and debris to mostly clear
     await sleep(500);
-    
+
     setShowRays(false);
     setPhase('reading');
   }, [phase, card, playSfx, packX, packY, screenX, screenY, cfg, spawnParticles]);
@@ -354,14 +354,14 @@ export default function BoosterPackOpening({
             className="absolute inset-0 flex flex-col items-center justify-center z-[60] pointer-events-none"
           >
             <div className="relative pointer-events-auto">
-              <Polaroid 
-                card={card} 
-                isNew={true} 
+              <Polaroid
+                card={card}
+                isNew={true}
                 onFlip={(isFront) => {
                   if (isFront) spawnParticles();
                 }}
               />
-              
+
               {phase === 'reading' && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -404,36 +404,103 @@ export default function BoosterPackOpening({
 
 // ─── Pack visual ─────────────────────────────────────────────────────────────
 function Pack({ card, cfg, phase }: { card: CardData; cfg: any; phase: Phase }) {
+  // Foil gradient based on rarity color
+  const baseColor = cfg.packColor || '#1e293b';
+
   return (
     <div
-      className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-sky-100"
+      className="relative w-[280px] h-[440px] rounded-lg overflow-hidden shadow-2xl flex flex-col items-center"
       style={{
-        boxShadow: `0 0 40px rgba(${cfg.glowRgb}, ${phase === 'shake' ? 0.7 : 0.25}), 0 20px 60px rgba(0,0,0,0.8)`,
+        boxShadow: `0 0 40px rgba(${cfg.glowRgb}, ${phase === 'shake' ? 0.8 : 0.3}), 0 20px 60px rgba(0,0,0,0.9)`,
         transition: 'box-shadow 0.3s',
+        background: `linear-gradient(135deg, ${baseColor}, #000)`,
       }}
     >
+      {/* Dynamic Foil Reflection */}
       <motion.div
-        animate={{ backgroundPosition: ['0% 0%', '100% 100%'], opacity: [0.15, 0.3, 0.15] }}
-        transition={{ backgroundPosition: { repeat: Infinity, duration: 5, ease: "linear" }, opacity: { repeat: Infinity, duration: 3, ease: "easeInOut" } }}
+        animate={{ backgroundPosition: ['0% 0%', '100% 100%'], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ backgroundPosition: { repeat: Infinity, duration: 4, ease: "linear" }, opacity: { repeat: Infinity, duration: 3, ease: "easeInOut" } }}
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,0,0,0.2) 0%, rgba(255,255,0,0.2) 20%, rgba(0,255,0,0.2) 40%, rgba(0,255,255,0.2) 60%, rgba(0,0,255,0.2) 80%, rgba(255,0,255,0.2) 100%)',
-          backgroundSize: '400% 400%',
+          background: 'linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 70%, rgba(255,255,255,0) 100%)',
+          backgroundSize: '250% 250%',
+          mixBlendMode: 'overlay',
+        }}
+      />
+
+      {/* Holographic Rainbow Sheen */}
+      <motion.div
+        animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+        className="absolute inset-0 z-10 pointer-events-none opacity-40"
+        style={{
+          background: 'linear-gradient(90deg, rgba(255,0,0,0.3) 0%, rgba(255,154,0,0.3) 15%, rgba(208,222,33,0.3) 30%, rgba(79,220,74,0.3) 45%, rgba(63,218,216,0.3) 60%, rgba(47,201,226,0.3) 75%, rgba(28,127,238,0.3) 90%, rgba(95,21,242,0.3) 100%)',
+          backgroundSize: '300% 300%',
           mixBlendMode: 'color-dodge',
         }}
       />
-      <div className="absolute bottom-0 inset-x-0 h-[40%] z-5 opacity-40 pointer-events-none">
-        <div className="absolute inset-x-0 bottom-0 h-full bg-emerald-500" style={{ clipPath: "polygon(0 40%, 15% 15%, 35% 45%, 55% 10%, 75% 55%, 90% 25%, 100% 45%, 100% 100%, 0% 100%)" }} />
+
+      {/* Top Foil Seam (Crimped) */}
+      <div
+        className="absolute top-0 inset-x-0 h-6 z-20"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(219, 250, 255, 1) 100%)',
+        }}
+      >
+        <div
+          className="w-full h-full opacity-50"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.8) 2px, rgba(0,0,0,0.8) 4px)'
+          }}
+        />
+        <div className="absolute top-0 inset-x-0 h-[2px] bg-white/40" />
       </div>
-      <div className="absolute inset-x-0 top-12 flex flex-col items-center z-20 select-none">
-        <span className="text-stone-800 font-serif font-black text-2xl tracking-tight drop-shadow-sm">MiAn TCG</span>
-        <span className="text-stone-500 font-mono text-[9px] tracking-[0.4em] uppercase mt-0.5">Authentic Archive</span>
-      </div>
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-20 gap-3 mt-4">
-        <div className="w-24 h-24 rounded-full bg-white/40 backdrop-blur-sm border-2 border-white shadow-inner flex items-center justify-center overflow-hidden">
-          <span className="text-4xl drop-shadow-lg">🦄</span>
+
+      {/* Pack Main Art Area (Matched to the Back of the Card) */}
+      <div className="absolute inset-x-0 top-6 bottom-8 z-20 overflow-hidden pointer-events-none">
+
+        {/* Background matching card back */}
+        <div className="absolute inset-0 bg-sky-100" />
+
+        {/* Sun rays */}
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-20 h-20 z-0">
+          <motion.div animate={{ scale: [1, 1.05, 1], rotate: 360 }} transition={{ scale: { duration: 4, repeat: Infinity }, rotate: { duration: 40, repeat: Infinity, ease: "linear" } }} className="relative w-full h-full flex items-center justify-center">
+            {[...Array(8)].map((_, i) => (<div key={i} className="absolute w-1 h-32 bg-gradient-to-t from-yellow-300 to-transparent" style={{ transform: `rotate(${i * 45}deg) translateY(-10px)` }} />))}
+            <div className="absolute inset-2 bg-yellow-400 rounded-full border-2 border-white shadow-xl flex items-center justify-center overflow-hidden"><div className="w-full h-full bg-gradient-to-tr from-yellow-500 to-white/40" /></div>
+          </motion.div>
+        </div>
+
+        {/* Distant Hills / Mountains */}
+        <div className="absolute bottom-0 inset-x-0 h-[70%] z-5 opacity-20"><div className="absolute inset-x-0 bottom-0 h-full bg-stone-900" style={{ clipPath: "polygon(0% 100%, 20% 40%, 40% 80%, 65% 10%, 85% 60%, 100% 30%, 100% 100%)" }} /></div>
+        <div className="relative h-full w-full z-20 flex flex-col justify-end">
+          <div className="absolute bottom-0 w-full h-[60%] bg-emerald-400 border-t border-white/20" style={{ clipPath: "polygon(0 40%, 15% 15%, 35% 45%, 55% 10%, 75% 55%, 90% 25%, 100% 45%, 100% 100%, 0% 100%)" }} />
+          <div className="absolute bottom-0 w-full h-[45%] bg-emerald-500 border-t border-white/20" style={{ clipPath: "polygon(0 50%, 25% 25%, 50% 65%, 75% 15%, 100% 55%, 100% 100%, 0% 100%)" }} />
+          <div className="absolute bottom-0 w-full h-[30%] bg-emerald-600 border-t border-white/20" style={{ clipPath: "polygon(0 45%, 30% 65%, 45% 35%, 65% 60%, 85% 40%, 100% 50%, 100% 100%, 0% 100%)" }} />
+          <div className="absolute bottom-6 w-full text-center z-40 text-white"><h3 className="font-serif font-black text-3xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">MiAn TCG</h3><p className="font-mono text-[9px] font-bold tracking-[0.4em] uppercase mt-1">Authentic Archive</p></div>
+        </div>
+
+        <div className="absolute inset-0 flex items-center justify-center z-50 -mt-10 pointer-events-none">
+          <motion.div animate={{ y: [0, -20, 0], rotate: [-2, 2, -2] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="relative"><span className="text-7xl drop-shadow-[0_15px_15px_rgba(0,0,0,0.3)]">🦄</span><motion.span animate={{ opacity: [1, 0, 1], scale: [1, 1.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute -top-4 -right-2 text-2xl">✨</motion.span></motion.div>
         </div>
       </div>
+
+      {/* Bottom Foil Seam (Crimped) */}
+      <div
+        className="absolute bottom-0 inset-x-0 h-8 z-20"
+        style={{
+          background: 'linear-gradient(to top, rgba(255, 255, 255, 0.3) 0%, rgba(45, 172, 110, 1) 100%)',
+          borderTop: '1px solid rgba(0,0,0,0.8)',
+        }}
+      >
+        <div
+          className="w-full h-full opacity-50"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.8) 2px, rgba(0,0,0,0.8) 4px)'
+          }}
+        />
+        <div className="absolute bottom-0 inset-x-0 h-[2px] bg-white/40" />
+      </div>
+
     </div>
   );
 }

@@ -65,7 +65,7 @@ const DeckCard = memo(({ card, onClick, currentMonth }: {
   const randomAnim = useMemo(() => {
     const duration = 2.5;
     return {
-      y: [0, -(5 + Math.random() * 5), 0],
+      y: [0, 0, 0],
       rotate: [-(0.7 + 12), (0.7 + 12), -(0.7 + 12)],
       rotateX: [-(15 + 20), (15 + 20), -(15 + 20)],
       rotateY: [-(5 + 10), (5 + 10), -(5 + 10)],
@@ -317,7 +317,7 @@ export default function Home() {
               {cards.filter(c => openedDays.includes(getCardId(currentYear, currentMonth, c.day))).length} of {days.filter(d => d !== null).length} Found
             </span>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-6 pt-2 px-2 no-scrollbar snap-x">
+          <div className="flex gap-5 overflow-x-auto pb-6 pt-5 px-4 no-scrollbar snap-x">
             {cards
               .filter(c => openedDays.includes(getCardId(currentYear, currentMonth, c.day)))
               .sort((a, b) => a.day - b.day)

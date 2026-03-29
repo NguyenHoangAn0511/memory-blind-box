@@ -5,6 +5,7 @@ import { motion, useMotionValue, useTransform, useSpring, useMotionTemplate, ani
 import Image from 'next/image';
 import { CardData } from '@/lib/data';
 import { Cake, Sparkles, Sun, Cloud, Heart, Star, Film, Ghost, Utensils, Zap } from 'lucide-react';
+import ScratchOff from './ScratchOff';
 
 const COLOR_GRADIENTS: Record<string, string> = {
   'Casual': "linear-gradient(135deg, #1e293b, #334155, #1e293b)",
@@ -49,6 +50,7 @@ export default function Polaroid({
 }) {
   const [isFlipped, setIsFlipped] = useState(isNew);
   const [hasRevealed, setHasRevealed] = useState(false);
+  const [isScratchCompleted, setIsScratchCompleted] = useState(!isNew);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -138,6 +140,9 @@ export default function Polaroid({
   };
 
   const handleFlip = () => {
+    // If we are looking at the front face of a new card and haven't finished scratching, prevent flipping it back
+    if (isNew && !isFlipped && !isScratchCompleted) return;
+
     const newFlipped = !isFlipped;
     playSfx('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', 0.8);
     
@@ -183,9 +188,9 @@ export default function Polaroid({
               <motion.div className="absolute inset-0 z-5 pointer-events-none" style={{ backgroundImage: prismBg, opacity: card.type === 'Birthday' ? 0.6 : 0.3 }} />
             )}
 
-            <motion.div className="absolute inset-0 z-10" style={{ backgroundImage: holoBorder, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", opacity: currentBorderOpacity }} />
+            <motion.div className="absolute inset-0 z-10 pointer-events-none" style={{ backgroundImage: holoBorder, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", opacity: currentBorderOpacity }} />
             <div className="absolute inset-x-0 top-0 h-[100%] z-15 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-            <motion.div className="absolute inset-0 z-10" style={{ backgroundImage: glareBg, mixBlendMode: "color-dodge", opacity: currentGlareOpacity * 1.5 }} />
+            <motion.div className="absolute inset-0 z-10 pointer-events-none" style={{ backgroundImage: glareBg, mixBlendMode: "color-dodge", opacity: currentGlareOpacity * 1.5 }} />
 
             <div className="absolute top-2 right-2 z-[60] flex flex-col items-center gap-2">
               <motion.div animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] }} transition={{ duration: 4, repeat: Infinity }} className={`bg-white/90 p-1.5 rounded-full shadow-lg border border-white/20`}>
@@ -198,8 +203,8 @@ export default function Polaroid({
               {card.imageUrl ? <Image src={card.imageUrl} alt={card.type} fill className="object-cover pointer-events-none z-0" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" /> : <div className="absolute inset-0 flex items-center justify-center bg-stone-900"><span className="text-stone-700 font-serif italic text-xs whitespace-nowrap">Uncaptured Moment</span></div>}
               <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10`} />
 
-              {card.type !== 'Casual' && <motion.div className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: rootSvgDataUri, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", opacity: currentBorderOpacity * 0.5 }} />}
-              {card.type !== 'Casual' && <motion.div className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: currentHoloGradient, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", opacity: currentHoloOpacity * 0.6 }} />}
+              {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentBorderOpacity * 0.5 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: rootSvgDataUri, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay" }} />}
+              {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentHoloOpacity * 0.6 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: currentHoloGradient, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay" }} />}
 
               <div style={{ transform: "translateZ(40px)" }} className={`absolute inset-0 flex flex-col justify-end p-4 z-40 ${textColor} select-none pointer-events-none`}>
                 <h3 className="text-xl font-bold font-serif whitespace-nowrap drop-shadow-md">{card.type}</h3>
@@ -210,6 +215,20 @@ export default function Polaroid({
               </div>
               <motion.div className="absolute inset-0 z-50 pointer-events-none" style={{ backgroundImage: glareBg, mixBlendMode: "overlay", opacity: currentGlareOpacity * 0.2 }} />
             </div>
+
+            {/* Scratch Off Layer */}
+            {isNew && (
+              <div style={{ transform: "translateZ(50px)" }} className="absolute inset-3 z-[100] rounded-xl overflow-hidden pointer-events-auto">
+                <ScratchOff 
+                  width={600} 
+                  height={800} 
+                  onComplete={() => {
+                    playSfx('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', 1.0);
+                    setIsScratchCompleted(true);
+                  }} 
+                />
+              </div>
+            )}
           </div>
 
           {/* Back Face */}
