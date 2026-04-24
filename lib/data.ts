@@ -18,6 +18,8 @@ export interface CardData {
   year?: number;
   glareOpacity?: number;
   objectPosition?: string;
+  // Birthday slideshow: up to 10 images that cycle like a GIF
+  slideshowImages?: string[];
 }
 
 export const RARITIES: { type: Rarity; color: string; glow: string }[] = [

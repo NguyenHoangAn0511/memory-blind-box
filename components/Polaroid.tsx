@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { motion, useMotionValue, useTransform, useSpring, useMotionTemplate, animate } from 'motion/react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { motion, useMotionValue, useTransform, useSpring, useMotionTemplate, animate, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import { CardData } from '@/lib/data';
 import { Cake, Sparkles, Sun, Cloud, Heart, Star, Film, Ghost, Utensils, Zap } from 'lucide-react';
@@ -53,6 +53,26 @@ export default function Polaroid({
   const [isScratchCompleted, setIsScratchCompleted] = useState(!isNew);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+
+  // Birthday slideshow state
+  const isBirthdaySlideshow = card.type === 'Birthday' && card.slideshowImages && card.slideshowImages.length > 1;
+  const slideshowImages = isBirthdaySlideshow ? card.slideshowImages! : [];
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-cycle slideshow images
+  useEffect(() => {
+    if (!isBirthdaySlideshow) return;
+    slideTimerRef.current = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % slideshowImages.length);
+    }, 2500);
+    return () => {
+      if (slideTimerRef.current) clearInterval(slideTimerRef.current);
+    };
+  }, [isBirthdaySlideshow, slideshowImages.length]);
+
+  // The current image to display (slideshow or single)
+  const currentImageUrl = isBirthdaySlideshow ? slideshowImages[currentSlide] : card.imageUrl;
 
   const disableAnimation = overrides?.disableAnimation ?? false;
   const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
@@ -182,7 +202,22 @@ export default function Polaroid({
             }}
             className="absolute inset-0 rounded-xl overflow-hidden bg-stone-900 shadow-2xl"
           >
-            {card.imageUrl ? <Image src={card.imageUrl} alt={card.type} fill className="object-cover pointer-events-none z-0" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" /> : <div className="absolute inset-0 bg-stone-800 z-0" />}
+            {/* Outer card image - slideshow or single */}
+            {isBirthdaySlideshow ? (
+              <div className="absolute inset-0 z-0">
+                {slideshowImages.map((imgUrl, idx) => (
+                  <motion.div
+                    key={`outer-slide-${idx}`}
+                    initial={false}
+                    animate={{ opacity: idx === currentSlide ? 1 : 0 }}
+                    transition={{ duration: 0.8, ease: 'easeInOut' }}
+                    className="absolute inset-0"
+                  >
+                    <Image src={imgUrl} alt={`${card.type} ${idx + 1}`} fill className="object-cover pointer-events-none" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" />
+                  </motion.div>
+                ))}
+              </div>
+            ) : card.imageUrl ? <Image src={card.imageUrl} alt={card.type} fill className="object-cover pointer-events-none z-0" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" /> : <div className="absolute inset-0 bg-stone-800 z-0" />}
 
             {card.type !== 'Casual' && (
               <motion.div className="absolute inset-0 z-5 pointer-events-none" style={{ backgroundImage: prismBg, opacity: card.type === 'Birthday' ? 0.6 : 0.3 }} />
@@ -200,7 +235,22 @@ export default function Polaroid({
 
             {/* 3. Inner Content */}
             <div style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", boxShadow: "0 0 15px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.4)" }} className="absolute inset-3 z-20 rounded-lg overflow-hidden bg-black border border-stone-800">
-              {card.imageUrl ? <Image src={card.imageUrl} alt={card.type} fill className="object-cover pointer-events-none z-0" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" /> : <div className="absolute inset-0 flex items-center justify-center bg-stone-900"><span className="text-stone-700 font-serif italic text-xs whitespace-nowrap">Uncaptured Moment</span></div>}
+              {/* Inner card image - slideshow or single */}
+              {isBirthdaySlideshow ? (
+                <div className="absolute inset-0 z-0">
+                  {slideshowImages.map((imgUrl, idx) => (
+                    <motion.div
+                      key={`inner-slide-${idx}`}
+                      initial={false}
+                      animate={{ opacity: idx === currentSlide ? 1 : 0 }}
+                      transition={{ duration: 0.8, ease: 'easeInOut' }}
+                      className="absolute inset-0"
+                    >
+                      <Image src={imgUrl} alt={`${card.type} ${idx + 1}`} fill className="object-cover pointer-events-none" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : card.imageUrl ? <Image src={card.imageUrl} alt={card.type} fill className="object-cover pointer-events-none z-0" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" /> : <div className="absolute inset-0 flex items-center justify-center bg-stone-900"><span className="text-stone-700 font-serif italic text-xs whitespace-nowrap">Uncaptured Moment</span></div>}
               <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10`} />
 
               {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentBorderOpacity * 0.5 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: rootSvgDataUri, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay" }} />}
@@ -214,6 +264,26 @@ export default function Polaroid({
                 </div>
               </div>
               <motion.div className="absolute inset-0 z-50 pointer-events-none" style={{ backgroundImage: glareBg, mixBlendMode: "overlay", opacity: currentGlareOpacity * 0.2 }} />
+              {/* Birthday Slideshow Indicator Dots */}
+              {isBirthdaySlideshow && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-[55] flex items-center gap-1 pointer-events-none">
+                  {slideshowImages.map((_, idx) => (
+                    <motion.div
+                      key={`dot-${idx}`}
+                      animate={{
+                        scale: idx === currentSlide ? 1 : 0.7,
+                        opacity: idx === currentSlide ? 1 : 0.4,
+                      }}
+                      transition={{ duration: 0.3 }}
+                      className="rounded-full bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+                      style={{
+                        width: idx === currentSlide ? 6 : 4,
+                        height: idx === currentSlide ? 6 : 4,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Scratch Off Layer */}
