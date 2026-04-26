@@ -134,7 +134,10 @@ export default function Polaroid({
       }
     }
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><g>${paths}</g></svg>`;
-    return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+    if (typeof window !== 'undefined') {
+      return `url("data:image/svg+xml;base64,${window.btoa(svg)}")`;
+    }
+    return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
   }, [card]);
 
   const baseColor = overrides?.colorGradient || card.colorGradient || COLOR_GRADIENTS[card.type] || COLOR_GRADIENTS['Casual'];
@@ -194,14 +197,15 @@ export default function Polaroid({
           transition={{ duration: 1, type: "spring", bounce: 0.15 }}
           className="w-full h-full relative rounded-xl"
         >
-          {/* Front Face */}
-          <div
-            style={{
-              backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(0deg) translateZ(1px)",
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
-            className="absolute inset-0 rounded-xl overflow-hidden bg-stone-900 shadow-2xl"
-          >
+            {/* Front Face */}
+            <div
+              style={{
+                backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(0deg) translateZ(1px)",
+                border: '1px solid rgba(255,255,255,0.1)',
+                isolation: 'isolate'
+              }}
+              className="absolute inset-0 rounded-xl overflow-hidden bg-stone-900 shadow-2xl"
+            >
             {/* Outer card image - slideshow or single */}
             {isBirthdaySlideshow ? (
               <div className="absolute inset-0 z-0">
@@ -223,7 +227,7 @@ export default function Polaroid({
               <motion.div className="absolute inset-0 z-5 pointer-events-none" style={{ backgroundImage: prismBg, opacity: card.type === 'Birthday' ? 0.6 : 0.3 }} />
             )}
 
-            <motion.div className="absolute inset-0 z-10 pointer-events-none" style={{ backgroundImage: holoBorder, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", opacity: currentBorderOpacity }} />
+            <motion.div className="absolute inset-0 z-10 pointer-events-none" style={{ backgroundImage: holoBorder, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", WebkitMixBlendMode: "overlay", opacity: currentBorderOpacity }} />
             <div className="absolute inset-x-0 top-0 h-[100%] z-15 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
             <motion.div className="absolute inset-0 z-10 pointer-events-none" style={{ backgroundImage: glareBg, mixBlendMode: "color-dodge", opacity: currentGlareOpacity * 1.5 }} />
 
@@ -253,8 +257,8 @@ export default function Polaroid({
               ) : card.imageUrl ? <Image src={card.imageUrl} alt={card.type} fill className="object-cover pointer-events-none z-0" style={{ objectPosition: currentObjectPosition }} referrerPolicy="no-referrer" /> : <div className="absolute inset-0 flex items-center justify-center bg-stone-900"><span className="text-stone-700 font-serif italic text-xs whitespace-nowrap">Uncaptured Moment</span></div>}
               <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10`} />
 
-              {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentBorderOpacity * 0.5 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: rootSvgDataUri, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay" }} />}
-              {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentHoloOpacity * 0.6 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: currentHoloGradient, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay" }} />}
+              {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentBorderOpacity * 0.5 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: rootSvgDataUri, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", WebkitMixBlendMode: "overlay" }} />}
+              {card.type !== 'Casual' && <motion.div animate={{ opacity: isScratchCompleted ? currentHoloOpacity * 0.6 : 0 }} className="absolute inset-0 z-30 pointer-events-none" style={{ backgroundImage: currentHoloGradient, backgroundSize: "300% 300%", backgroundPosition: bgPos, mixBlendMode: "overlay", WebkitMixBlendMode: "overlay" }} />}
 
               <div style={{ transform: "translateZ(40px)" }} className={`absolute inset-0 flex flex-col justify-end p-4 z-40 ${textColor} select-none pointer-events-none`}>
                 <h3 className="text-xl font-bold font-serif whitespace-nowrap drop-shadow-md">{card.type}</h3>

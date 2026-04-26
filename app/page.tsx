@@ -70,6 +70,18 @@ const DeckCard = memo(({ card, onClick, currentMonth }: {
     };
   }, []);
 
+  const isBirthdaySlideshow = card.type === 'Birthday' && card.slideshowImages && card.slideshowImages.length > 1;
+  const slideshowImages = isBirthdaySlideshow ? card.slideshowImages! : [];
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    if (!isBirthdaySlideshow) return;
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % slideshowImages.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [isBirthdaySlideshow, slideshowImages.length]);
+
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -5, rotate: -1, zIndex: 50 }}
@@ -94,7 +106,23 @@ const DeckCard = memo(({ card, onClick, currentMonth }: {
         }}
       >
         <FoilOverlay type={card.type} />
-        <Image src={card.imageUrl} alt="" fill className="object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+        {isBirthdaySlideshow ? (
+          <div className="absolute inset-0">
+            {slideshowImages.map((imgUrl, idx) => (
+              <motion.div
+                key={idx}
+                initial={false}
+                animate={{ opacity: idx === currentSlide ? 1 : 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0"
+              >
+                <Image src={imgUrl} alt="" fill className="object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <Image src={card.imageUrl} alt="" fill className="object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+        )}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent z-20" />
         <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5 z-30">
           <div className="flex items-center gap-1.5">

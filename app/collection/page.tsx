@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, X, Filter, ArrowUpDown, Info } from 'lucide-react';
 import Link from 'next/link';
@@ -35,6 +35,61 @@ const RARITY_ORDER: Record<Rarity, number> = {
   'Dinner': 5,
   'Casual': 6,
 };
+
+const CollectionCard = memo(({ card, onClick }: { card: CardData; onClick: () => void }) => {
+  const isBirthdaySlideshow = card.type === 'Birthday' && card.slideshowImages && card.slideshowImages.length > 1;
+  const slideshowImages = isBirthdaySlideshow ? card.slideshowImages! : [];
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    if (!isBirthdaySlideshow) return;
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % slideshowImages.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [isBirthdaySlideshow, slideshowImages.length]);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ layout: { type: 'spring', bounce: 0.2, duration: 0.6 } }}
+      layoutId={`collection-card-${card.id}`}
+      whileHover={{ scale: 1.05, y: -5 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={`relative aspect-[3/4] rounded-xl flex flex-col items-center justify-center overflow-hidden transition-shadow duration-300 shadow-sm hover:shadow-xl cursor-pointer ${getBorderClass(card.type)}`}
+    >
+      <div className="absolute inset-0 opacity-80">
+        {isBirthdaySlideshow ? (
+          slideshowImages.map((imgUrl, idx) => (
+            <motion.div
+              key={idx}
+              initial={false}
+              animate={{ opacity: idx === currentSlide ? 1 : 0 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0"
+            >
+              <Image src={imgUrl} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+            </motion.div>
+          ))
+        ) : (
+          <Image src={card.imageUrl} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+        )}
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      
+      <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+        <span className="text-2xl font-serif text-white drop-shadow-md">{card.day}</span>
+        <span className="text-[10px] font-mono uppercase tracking-wider text-white/80 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
+          {card.type}
+        </span>
+      </div>
+    </motion.div>
+  );
+});
 
 export default function CollectionPage() {
   const openedDays = useAppStore((state) => state.openedDays);
@@ -119,32 +174,7 @@ export default function CollectionPage() {
   const allTypes = ['All', ...Array.from(new Set(collectedCards.map(c => c.type)))] as (Rarity | 'All')[];
 
   const renderCard = (card: CardData) => (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ layout: { type: 'spring', bounce: 0.2, duration: 0.6 } }}
-      layoutId={`collection-card-${card.id}`}
-      key={card.id}
-      whileHover={{ scale: 1.05, y: -5 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={() => setSelectedCard(card)}
-      className={`relative aspect-[3/4] rounded-xl flex flex-col items-center justify-center overflow-hidden transition-shadow duration-300 shadow-sm hover:shadow-xl cursor-pointer ${getBorderClass(card.type)}`}
-    >
-
-      <div className="absolute inset-0 opacity-80">
-        <Image src={card.imageUrl} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-      
-      <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
-        <span className="text-2xl font-serif text-white drop-shadow-md">{card.day}</span>
-        <span className="text-[10px] font-mono uppercase tracking-wider text-white/80 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
-          {card.type}
-        </span>
-      </div>
-    </motion.div>
+    <CollectionCard key={card.id} card={card} onClick={() => setSelectedCard(card)} />
   );
 
   if (!isClient) return null;
