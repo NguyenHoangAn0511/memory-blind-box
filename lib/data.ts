@@ -49,19 +49,7 @@ export interface Letter {
   unlockCondition: { month: number; day: number };
 }
 
-export const LETTERS: Letter[] = [
-  {
-    id: 'birthday-letter',
-    title: 'A Special Message',
-    sender: 'An',
-    date: 'April 26',
-    unlockCondition: { month: 3, day: 26 },
-    content: [
-      "If you are reading this, it means you have uncovered every single memory we've hidden away for this month.",
-      "Seeing all these moments together—the quiet dinners, the grand holidays, the silly casual days—reminds me of how incredibly lucky I am to share this journey with you. Each card isn't just a photograph; it's a testament to the beautiful life we are building together.",
-      "Thank you for every smile, every adventure, and every quiet moment we've shared. I cherish these memories more than words can say, and I cannot wait to create a thousand more with you.",
-      "Here is to our past, our present, and our beautiful future."
-    ]
-  }
-];
+import lettersData from './letters.json';
+
+export const LETTERS: Letter[] = lettersData as Letter[];
 

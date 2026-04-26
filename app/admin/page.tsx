@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import cardsData from '@/lib/cards.json';
-import { CardData, Rarity } from '@/lib/data';
+import { CardData, Rarity, Letter } from '@/lib/data';
+import lettersJson from '@/lib/letters.json';
 import Link from 'next/image';
 import NextLink from 'next/link';
-import { Save, ArrowLeft, LogOut, Upload, Zap, Image as ImageIcon, Settings, Calendar, Palette, Database, ChevronLeft, ChevronRight, RefreshCw, Sparkles, Wand2, Plus, Trash2, ArrowUp, ArrowDown, Film } from 'lucide-react';
+import { Save, ArrowLeft, LogOut, Upload, Zap, Image as ImageIcon, Settings, Calendar, Palette, Database, ChevronLeft, ChevronRight, RefreshCw, Sparkles, Wand2, Plus, Trash2, ArrowUp, ArrowDown, Film, Mail } from 'lucide-react';
 import Polaroid from '@/components/Polaroid';
 import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/lib/store';
@@ -34,6 +35,11 @@ export default function AdminPage() {
   const [editCard, setEditCard] = useState<CardData | null>(null);
   const [color1, setColor1] = useState('#22c55e');
   const [color2, setColor2] = useState('#3b82f6');
+
+  const [activeTab, setActiveTab] = useState<'cards' | 'letters'>('cards');
+  const [letters, setLetters] = useState<Letter[]>(lettersJson as Letter[]);
+  const [selectedLetterId, setSelectedLetterId] = useState<string>(lettersJson[0]?.id || '');
+  const editLetter = letters.find(l => l.id === selectedLetterId);
 
   useEffect(() => {
     setIsClient(true);
@@ -178,13 +184,23 @@ export default function AdminPage() {
   };
 
   const handleSave = async () => {
-    if (!supabase || !editCard) return;
+    if (!supabase) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('cards').upsert(editCard);
-      if (error) throw error;
-      setCards([...cards.filter(c => c.day !== selectedDay), editCard].sort((a, b) => a.day - b.day));
-      alert("Saved Successfully!");
+      if (activeTab === 'cards' && editCard) {
+        const { error } = await supabase.from('cards').upsert(editCard);
+        if (error) throw error;
+        setCards([...cards.filter(c => c.day !== selectedDay), editCard].sort((a, b) => a.day - b.day));
+        alert("Saved Card Successfully!");
+      } else if (activeTab === 'letters') {
+        const res = await fetch('/api/letters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(letters),
+        });
+        if (!res.ok) throw new Error('Failed to save letters');
+        alert("Saved Letters Successfully!");
+      }
     } catch (e: any) { alert("Save Error: " + (e.message || "Unknown error")); }
     setSaving(false);
   };
@@ -203,7 +219,14 @@ export default function AdminPage() {
           <button onClick={handleLogout} className="text-stone-400 hover:text-rose-400 transition-colors"><LogOut className="w-5 h-5" /></button>
         </header>
 
+        <div className="flex border-b border-stone-200">
+          <button onClick={() => setActiveTab('cards')} className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'cards' ? 'bg-pink-50 text-pink-600 border-b-2 border-pink-500' : 'text-stone-500 hover:bg-stone-50'}`}>Cards</button>
+          <button onClick={() => setActiveTab('letters')} className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-colors ${activeTab === 'letters' ? 'bg-pink-50 text-pink-600 border-b-2 border-pink-500' : 'text-stone-500 hover:bg-stone-50'}`}>Letters</button>
+        </div>
+
         <div className="p-6 space-y-8 flex-grow">
+          {activeTab === 'cards' ? (
+            <>
           <section className="bg-stone-50 p-4 rounded-2xl border border-stone-200 shadow-sm">
             <div className="flex items-center justify-between mb-3 pl-2 border-l-2 border-stone-300">
               <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Context</label>
@@ -381,6 +404,93 @@ export default function AdminPage() {
                 </button>
               </div>
             </>
+          )}
+          </>
+          ) : (
+            <div className="space-y-6">
+              <section>
+                <label className="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest mb-3"><Mail className="w-3 h-3" /> Select Letter</label>
+                <div className="flex flex-col gap-2">
+                  {letters.map((l) => (
+                    <button key={l.id} onClick={() => setSelectedLetterId(l.id)} className={`py-3 px-4 text-sm font-serif rounded-xl border-2 text-left transition-all ${selectedLetterId === l.id ? 'bg-pink-500 text-white border-pink-500 shadow-xl' : 'bg-white text-stone-700 border-stone-100 hover:border-pink-200'}`}>
+                      <div className="font-bold">{l.title}</div>
+                      <div className="text-xs opacity-80 mt-1">Unlock: {l.unlockCondition.month + 1}/{l.unlockCondition.day}</div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {editLetter && (
+                <section className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <label className="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest"><Settings className="w-3 h-3" /> Letter Content</label>
+                  </div>
+                  
+                  <div><span className="text-[10px] text-stone-400 font-bold ml-1 uppercase">Title</span><input type="text" value={editLetter.title} onChange={(e) => {
+                    const newLetters = [...letters];
+                    const idx = newLetters.findIndex(l => l.id === editLetter.id);
+                    if (idx !== -1) {
+                      newLetters[idx] = { ...newLetters[idx], title: e.target.value };
+                      setLetters(newLetters);
+                    }
+                  }} className="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl font-serif text-sm outline-none focus:border-pink-300" /></div>
+                  
+                  <div><span className="text-[10px] text-stone-400 font-bold ml-1 uppercase">Sender</span><input type="text" value={editLetter.sender} onChange={(e) => {
+                    const newLetters = [...letters];
+                    const idx = newLetters.findIndex(l => l.id === editLetter.id);
+                    if (idx !== -1) {
+                      newLetters[idx] = { ...newLetters[idx], sender: e.target.value };
+                      setLetters(newLetters);
+                    }
+                  }} className="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs outline-none focus:border-pink-300" /></div>
+                  
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] text-stone-400 font-bold ml-1 uppercase">Paragraphs</span>
+                      <button onClick={() => {
+                        const newLetters = [...letters];
+                        const idx = newLetters.findIndex(l => l.id === editLetter.id);
+                        if (idx !== -1) {
+                          newLetters[idx] = { ...newLetters[idx], content: [...newLetters[idx].content, ""] };
+                          setLetters(newLetters);
+                        }
+                      }} className="text-[10px] text-pink-500 font-bold uppercase tracking-widest flex items-center gap-1 hover:text-pink-600"><Plus className="w-3 h-3" /> Add</button>
+                    </div>
+                    <div className="space-y-3">
+                      {editLetter.content.map((p, idx) => (
+                        <div key={idx} className="relative group">
+                          <textarea value={p} onChange={(e) => {
+                            const newLetters = [...letters];
+                            const lIdx = newLetters.findIndex(l => l.id === editLetter.id);
+                            if (lIdx !== -1) {
+                              const newContent = [...newLetters[lIdx].content];
+                              newContent[idx] = e.target.value;
+                              newLetters[lIdx] = { ...newLetters[lIdx], content: newContent };
+                              setLetters(newLetters);
+                            }
+                          }} rows={3} className="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl font-serif text-sm outline-none resize-none focus:ring-2 focus:ring-pink-100" />
+                          <button onClick={() => {
+                            const newLetters = [...letters];
+                            const lIdx = newLetters.findIndex(l => l.id === editLetter.id);
+                            if (lIdx !== -1) {
+                              const newContent = newLetters[lIdx].content.filter((_, i) => i !== idx);
+                              newLetters[lIdx] = { ...newLetters[lIdx], content: newContent };
+                              setLetters(newLetters);
+                            }
+                          }} className="absolute top-2 right-2 p-1.5 bg-red-100 text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 pb-10">
+                    <button onClick={handleSave} disabled={saving} className="group relative w-full py-5 bg-pink-500 text-white rounded-[2rem] font-serif text-2xl font-black shadow-2xl hover:bg-pink-600 transition-all flex items-center justify-center gap-3 active:scale-95">
+                      <Save className="w-7 h-7" /> <span>{saving ? 'Syncing...' : 'Save Letters'}</span>
+                    </button>
+                  </div>
+                </section>
+              )}
+            </div>
           )}
         </div>
       </div>
